@@ -97,6 +97,27 @@
     margin-right: 8px;
   }
   .badge.gold { background: var(--accent-gold); color: #14140f; }
+  .updated-line {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 600;
+    margin: 2px 0 8px;
+  }
+  .updated-line .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2ecc71;
+    box-shadow: 0 0 0 3px rgba(46,204,113,0.18);
+    flex: none;
+  }
+  .updated-line .label {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
 
   .toggle {
     display: flex;
@@ -303,6 +324,7 @@
     <div class="titleblock">
       <span class="badge gold">SBW SNS サマリー</span>
       <h1>信州ブレイブウォリアーズ SNSダッシュボード</h1>
+      <p class="updated-line"><span class="dot"></span><span class="label">最終更新：</span>2026年7月20日 08:11 JST</p>
       <p class="sub">公開ページの閲覧による集計・スナップショット取得日: 2026年7月18日 ／ ランキング対象期間: 2025年7月1日〜2026年7月18日（週間・月間・シーズンTop3、SNS別Top10、投稿評価付き。詳細は末尾の注記を参照）</p>
     </div>
     <div class="toggle" role="group" aria-label="表示テーマ切り替え">
