@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>信州ブレイブウォリアーズ SNSサマリーダッシュボード</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page-plane:      #f9f9f7;
+    --surface-1:       #fcfcfb;
+    --text-primary:    #0b0b0b;
+    --text-secondary:  #52514e;
+    --text-muted:      #898781;
+    --grid:            #e1e0d9;
+    --baseline:        #c3c2b7;
+    --border:          rgba(11,11,11,0.10);
+
+    --series-1: #2a78d6; /* X (blue) */
+    --series-2: #008300; /* Facebook (green) */
+    --series-3: #e87ba4; /* YouTube (magenta) */
+    --series-4: #eda100; /* X グッズ (yellow) */
+    --series-5: #1baf7a; /* X アカデミー (aqua) */
+    --series-6: #eb6834; /* Instagram (orange) */
+    --series-7: #4a3aa7; /* X ブレアー (violet) */
+    --series-na: #c3c2b7; /* データなし */
+
+    --seq-100: #cde2fb;
+    --seq-250: #86b6ef;
+    --seq-400: #3987e5;
+    --seq-550: #1c5cab;
+
+    --accent-gold: #a9832b;
+    --accent-black: #14140f;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page-plane:      #0d0d0d;
+    --surface-1:       #1a1a19;
+    --text-primary:    #ffffff;
+    --text-secondary:  #c3c2b7;
+    --text-muted:      #898781;
+    --grid:            #2c2c2a;
+    --baseline:        #383835;
+    --border:          rgba(255,255,255,0.10);
+
+    --series-1: #3987e5;
+    --series-2: #008300;
+    --series-3: #d55181;
+    --series-4: #c98500;
+    --series-5: #199e70;
+    --series-6: #d95926;
+    --series-7: #9085e9;
+    --series-na: #52514e;
+
+    --accent-gold: #d4af37;
+    --accent-black: #f2f2ee;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page-plane);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  header.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .titleblock h1 {
+    font-size: 26px;
+    margin: 0 0 6px;
+    letter-spacing: 0.01em;
+  }
+  .titleblock .sub {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin: 0;
+  }
+  .badge {
+    display: inline-block;
+    background: var(--accent-black);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    letter-spacing: 0.03em;
+    margin-right: 8px;
+  }
+  .badge.gold { background: var(--accent-gold); color: #14140f; }
+
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 6px;
+  }
+  .toggle button {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .toggle button.active {
+    background: var(--accent-black);
+    color: #fff;
+  }
+  :root[data-theme="dark"] .toggle button.active { background: #ffffff; color: #0b0b0b; }
+
+  section { margin-bottom: 40px; }
+  h2.sec-title {
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2.sec-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--grid);
+  }
+
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+  }
+  .tile {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .tile .platform {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .tile .value {
+    font-size: 30px;
+    font-weight: 650;
+    font-variant-numeric: proportional-nums;
+    line-height: 1.1;
+  }
+  .tile .value.na { font-size: 18px; color: var(--text-muted); font-weight: 500; }
+  .tile .label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .tile .handle { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 860px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+  }
+  .panel h3 {
+    font-size: 14px;
+    margin: 0 0 4px;
+  }
+  .panel .note {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0 0 16px;
+  }
+
+  /* Horizontal bar chart */
+  .hbar-row { display: grid; grid-template-columns: 150px 1fr 84px; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .hbar-row .name { font-size: 12.5px; color: var(--text-secondary); }
+  .hbar-track { position: relative; height: 14px; background: var(--grid); border-radius: 4px; overflow: hidden; }
+  .hbar-fill { position: absolute; top: 0; left: 0; height: 100%; border-radius: 4px; }
+  .hbar-row .val { font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; color: var(--text-primary); }
+  .hbar-row.na .hbar-track { background: repeating-linear-gradient(135deg, var(--grid), var(--grid) 4px, var(--surface-1) 4px, var(--surface-1) 8px); }
+  .hbar-row.na .val { color: var(--text-muted); font-size: 11px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 4px; font-size: 11.5px; color: var(--text-secondary); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+  /* Vertical bar chart for videos */
+  .vbars { display: flex; align-items: flex-end; gap: 8px; height: 190px; padding-top: 10px; position: relative; }
+  .vbars .gridline { position: absolute; left: 0; right: 0; height: 1px; background: var(--grid); }
+  .vbar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; position: relative; }
+  .vbar { width: 100%; max-width: 26px; border-radius: 4px 4px 2px 2px; background: var(--seq-400); position: relative; cursor: default; }
+  .vbar:hover { background: var(--seq-550); }
+  .vbar-col .vlabel { font-size: 9.5px; color: var(--text-muted); margin-top: 6px; writing-mode: vertical-rl; text-orientation: mixed; height: 70px; white-space: nowrap; }
+  .vbar .tip {
+    position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(-6px);
+    background: var(--accent-black); color: #fff; font-size: 11px; padding: 4px 7px; border-radius: 6px;
+    white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .12s ease;
+  }
+  .vbar:hover .tip { opacity: 1; }
+
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.data-table th {
+    text-align: left; font-weight: 600; color: var(--text-muted);
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em;
+    padding: 8px 10px; border-bottom: 1px solid var(--grid);
+  }
+  table.data-table td { padding: 9px 10px; border-bottom: 1px solid var(--grid); color: var(--text-secondary); }
+  table.data-table td.num, table.data-table th.num { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-primary); }
+  table.data-table tr:last-child td { border-bottom: none; }
+
+  .quote-post {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: var(--page-plane);
+    font-size: 12.5px;
+    margin-bottom: 10px;
+  }
+  .quote-post .meta { color: var(--text-muted); font-size: 11px; margin-bottom: 6px; }
+  .quote-post .stats { display: flex; gap: 16px; margin-top: 10px; color: var(--text-secondary); font-size: 11.5px; }
+  .quote-post .stats b { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+
+  .callout {
+    border-left: 3px solid var(--accent-gold);
+    background: var(--surface-1);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-gold);
+  }
+  .callout ul { margin: 8px 0 0; padding-left: 18px; }
+  .callout li { margin-bottom: 6px; }
+
+  h3.sub-title { font-size: 14.5px; margin: 28px 0 10px; color: var(--text-primary); }
+  h3.sub-title:first-child { margin-top: 0; }
+  p.lead-note { font-size: 12.5px; color: var(--text-secondary); margin: -4px 0 16px; }
+
+  .rank-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 50%; font-size: 10.5px; font-weight: 700;
+    color: #fff; background: var(--text-muted); flex: none;
+  }
+  .rank-badge.r1 { background: var(--accent-gold); color: var(--accent-black); }
+  .rank-badge.r2 { background: #9a9a92; color: #fff; }
+  .rank-badge.r3 { background: #a9754a; color: #fff; }
+  td.rank-cell { display: flex; align-items: center; gap: 8px; }
+  .plat-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; }
+
+  .score-row { display: grid; grid-template-columns: 26px 1.6fr 1fr 44px; gap: 10px; align-items: center; margin-bottom: 14px; }
+  .score-row .rank-badge { width: 24px; height: 24px; font-size: 11.5px; }
+  .score-row .desc { font-size: 12.5px; color: var(--text-secondary); }
+  .score-row .desc b { color: var(--text-primary); }
+  .score-row .desc .meta2 { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .score-track { position: relative; height: 10px; background: var(--grid); border-radius: 4px; overflow: hidden; }
+  .score-fill { position: absolute; top: 0; left: 0; height: 100%; border-radius: 4px; background: var(--seq-400); }
+  .score-num { font-size: 13px; font-weight: 650; text-align: right; font-variant-numeric: tabular-nums; }
+  .eval-comment { font-size: 11.5px; color: var(--text-secondary); margin: 4px 0 0; grid-column: 1 / -1; padding-left: 36px; }
+
+  .season-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 860px) { .season-grid { grid-template-columns: 1fr; } }
+  .mini-table-title { font-size: 12.5px; font-weight: 650; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+  .season-tag { font-size: 10.5px; padding: 2px 8px; border-radius: 20px; background: var(--grid); color: var(--text-secondary); font-weight: 600; }
+  .season-tag.current { background: var(--accent-gold); color: var(--accent-black); }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 18px;
+    border-top: 1px solid var(--grid);
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+  footer a { color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="titleblock">
+      <span class="badge gold">SBW SNS サマリー</span>
+      <h1>信州ブレイブウォリアーズ SNSダッシュボード</h1>
+      <p class="sub">公開ページの閲覧による集計・スナップショット取得日: 2026年7月18日 ／ ランキング対象期間: 2025年7月1日〜2026年7月18日（週間・月間・シーズンTop3、統合Top10、投稿評価付き。詳細は末尾の注記を参照）</p>
+    </div>
+    <div class="toggle" role="group" aria-label="表示テーマ切り替え">
+      <button type="button" data-theme-btn="light" class="active">ライト</button>
+      <button type="button" data-theme-btn="dark">ダーク</button>
+    </div>
+  </header>
+
+  <section>
+    <h2 class="sec-title">アカウント別 現在のフォロワー / 登録者数</h2>
+    <div class="tiles">
+      <div class="tile">
+        <div class="platform"><span class="dot" style="background:var(--series-1)"></span>X（本体）</div>
+        <div class="value">45,000</div>
+        <div class="label">フォロワー ／ 投稿 29,000件</div>
+        <div class="handle">@shinshubw</div>
+      </div>
+      <div class="tile">
+        <div class="platform"><span class="dot" style="background:var(--series-3)"></span>YouTube</div>
+        <div class="value">10,200</div>
+        <div class="label">チャンネル登録者 ／ 動画 859本</div>
+        <div class="handle">@shinshubw</div>
+      </div>
+      <div class="tile">
+        <div class="platform"><span class="dot" style="background:var(--series-2)"></span>Facebook</div>
+        <div class="value">8,230</div>
+        <div class="label">フォロワー</div>
+        <div class="handle">brave.warriors</div>
+      </div>
+      <div class="tile">
+        <div class="platform"><span class="dot" style="background:var(--series-4)"></span>X（グッズ情報）</div>
+        <div class="value">2,604</div>
+        <div class="label">フォロワー ／ 投稿 468件</div>
+        <div class="handle">@shinshubw_goods</div>
+      </div>
+      <div class="tile">
+        <div class="platform"><span class="dot" style="background:var(--series-6)"></span>Instagram</div>
+        <div class="value">31,000</div>
+        <div class="label">フォロワー ／ 投稿 4,381件</div>
+        <div class="handle">@shinshubw</div>
+      </div>
+      <div class="tile">
+        <div class="platform"><span class="dot" style="background:var(--series-7)"></span>X（ブレアー）</div>
+        <div class="value">3,026</div>
+        <div class="label">フォロワー ／ 投稿 523件</div>
+        <div class="handle">@blare_sbw</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec-title">プラットフォーム比較</h2>
+    <div class="panel">
+      <h3>フォロワー / 登録者数 比較（本日時点スナップショット）</h3>
+      <p class="note">現在確認できている全アカウントを、フォロワー/登録者数の多い順に表示。</p>
+
+      <div class="hbar-row">
+        <div class="name">X（本体）</div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:100%; background:var(--series-1)"></div></div>
+        <div class="val">45,000</div>
+      </div>
+      <div class="hbar-row">
+        <div class="name">Instagram（本体）</div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:68.9%; background:var(--series-6)"></div></div>
+        <div class="val">31,000</div>
+      </div>
+      <div class="hbar-row">
+        <div class="name">YouTube</div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:22.7%; background:var(--series-3)"></div></div>
+        <div class="val">10,200</div>
+      </div>
+      <div class="hbar-row">
+        <div class="name">Facebook</div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:18.3%; background:var(--series-2)"></div></div>
+        <div class="val">8,230</div>
+      </div>
+      <div class="hbar-row">
+        <div class="name">X（ブレアー）</div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:6.7%; background:var(--series-7)"></div></div>
+        <div class="val">3,026</div>
+      </div>
+      <div class="hbar-row">
+        <div class="name">X（グッズ情報）</div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:5.8%; background:var(--series-4)"></div></div>
+        <div class="val">2,604</div>
+      </div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--series-1)"></span>X本体</span>
+        <span><span class="dot" style="background:var(--series-6)"></span>Instagram</span>
+        <span><span class="dot" style="background:var(--series-3)"></span>YouTube</span>
+        <span><span class="dot" style="background:var(--series-2)"></span>Facebook</span>
+        <span><span class="dot" style="background:var(--series-7)"></span>Xブレアー</span>
+        <span><span class="dot" style="background:var(--series-4)"></span>Xグッズ</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec-title">YouTube：直近動画の視聴数</h2>
+    <div class="grid-2">
+      <div class="panel">
+        <h3>視聴数上位（直近1〜2ヶ月に公開された動画より抜粋）</h3>
+        <p class="note">2025-26シーズン ハイライト動画・記者会見動画のサンプル。バーにカーソルを合わせると視聴数を表示。</p>
+        <div class="vbars">
+          <div class="gridline" style="bottom:0"></div>
+          <div class="vbar-col" style="height:100%">
+            <div class="vbar" style="height:60.5%"><div class="tip">5,129回視聴</div></div>
+            <div class="vlabel">5/10 G2 HL</div>
+          </div>
+          <div class="vbar-col" style="height:100%">
+            <div class="vbar" style="height:55.3%"><div class="tip">4,721回視聴</div></div>
+            <div class="vlabel">READY OR NOT.</div>
+          </div>
+          <div class="vbar-col" style="height:100%">
+            <div class="vbar" style="height:29.7%"><div class="tip">2,530回視聴</div></div>
+            <div class="vlabel">#24 ダウム</div>
+          </div>
+          <div class="vbar-col" style="height:100%">
+            <div class="vbar" style="height:29.3%"><div class="tip">2,494回視聴</div></div>
+            <div class="vlabel">#15 チェンバース</div>
+          </div>
+          <div class="vbar-col" style="height:100%">
+            <div class="vbar" style="height:28.4%"><div class="tip">2,420回視聴</div></div>
+            <div class="vlabel">#34 渡邉</div>
+          </div>
+          <div class="vbar-col" style="height:100%">
+            <div class="vbar" style="height:27.1%"><div class="tip">2,303回視聴</div></div>
+            <div class="vlabel">SHINSHU PRIDE.</div>
+          </div>
+          <div class="vbar-col" style="height:100%">
+            <div class="vbar" style="height:26.1%"><div class="tip">2,229回視聴</div></div>
+            <div class="vlabel">5/11 G3 会見</div>
+          </div>
+          <div class="vbar-col" style="height:100%">
+            <div class="vbar" style="height:25.0%"><div class="tip">2,124回視聴</div></div>
+            <div class="vlabel">5/9 G1 HL</div>
+          </div>
+          <div class="vbar-col" style="height:100%">
+            <div class="vbar" style="height:24.4%"><div class="tip">2,082回視聴</div></div>
+            <div class="vlabel">#3 ドンリー</div>
+          </div>
+          <div class="vbar-col" style="height:100%">
+            <div class="vbar" style="height:22.1%"><div class="tip">1,890回視聴</div></div>
+            <div class="vlabel">5/16 G1 HL</div>
+          </div>
+          <div class="vbar-col" style="height:100%">
+            <div class="vbar" style="height:21.0%"><div class="tip">1,798回視聴</div></div>
+            <div class="vlabel">#5 土家</div>
+          </div>
+          <div class="vbar-col" style="height:100%">
+            <div class="vbar" style="height:20.7%"><div class="tip">1,768回視聴</div></div>
+            <div class="vlabel">#11 小栗</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>チャンネル概況</h3>
+        <p class="note">直近サンプル26本の視聴数レンジ</p>
+        <table class="data-table">
+          <tr><th>指標</th><th class="num">値</th></tr>
+          <tr><td>チャンネル登録者数</td><td class="num">10,200</td></tr>
+          <tr><td>総動画本数</td><td class="num">859</td></tr>
+          <tr><td>サンプル最大視聴数</td><td class="num">5,129</td></tr>
+          <tr><td>サンプル最小視聴数</td><td class="num">882</td></tr>
+          <tr><td>サンプル平均視聴数</td><td class="num">約 1,850</td></tr>
+        </table>
+        <p class="note" style="margin-top:14px;">試合ハイライト（GAMEハイライト・会見コメント）がコンスタントに1,000〜2,500回視聴、選手別ハイライトも同水準。「READY OR NOT．」等のブランド動画は突出して視聴数が伸びる傾向。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec-title">代表的な投稿（X ・ Instagram）</h2>
+    <div class="grid-2">
+      <div class="panel">
+        <h3>「信州PRIDE」投稿（6月2日）のプラットフォーム比較</h3>
+        <p class="note">同じブランディング投稿でも、プラットフォームによってエンゲージメントの質が異なる。</p>
+        <div class="quote-post">
+          <div class="meta">X @shinshubw ・ 6月2日（固定ポスト）</div>
+          「信州PRIDE」日本全国へ、世界へ。勇敢に、大胆に、恐れずに。 #信州ブレイブウォリアーズ #信州PRIDE
+          <div class="stats">
+            <span>返信 <b>27</b></span>
+            <span>リポスト <b>462</b></span>
+            <span>いいね <b>1,594</b></span>
+            <span>インプレッション <b>70万</b></span>
+          </div>
+        </div>
+        <div class="quote-post">
+          <div class="meta">Instagram @shinshubw ・ 6月2日（固定投稿・同一内容のリール）</div>
+          「信州PRIDE」日本全国へ、世界へ。
+          <div class="stats">
+            <span>いいね <b>1,518</b></span>
+          </div>
+        </div>
+        <div class="quote-post">
+          <div class="meta">直近の新加入選手紹介リール（Instagram、オフシーズン投稿）</div>
+          「ブースターからの質問に回答します！」形式の選手紹介シリーズ
+          <div class="stats">
+            <span>#22 トビン(15時間前) <b>1,026</b>いいね</span>
+            <span>#6 古川(1日前) <b>901</b>いいね</span>
+            <span>#14 星野(2日前) <b>600</b>いいね</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>ここに注目</h3>
+        <div class="callout">
+          <ul>
+            <li>現在はオフシーズン（2026-27シーズン準備期間）で、新加入選手紹介がX・Instagram共通の主要コンテンツ。Instagramのリール形式（選手紹介）は1投稿あたり600〜1,000件超のいいねを獲得しており、オフシーズンでも高いエンゲージメントを維持。</li>
+            <li>ブランディング投稿「信州PRIDE」はXで通常投稿の10〜20倍のインプレッションを獲得。Instagramでも同日投稿が1,518いいねと、通常の選手紹介より高い反応を記録。</li>
+            <li>マスコット「ブレアー」の公式Xアカウント（@blare_sbw、2025年8月開設）は開設1年未満で3,026フォロワーを獲得。本体アカウントの日常投稿・リポスト元としても機能している。</li>
+            <li>チームは2026-27シーズンより新リーグ「B.PREMIER」西地区に所属予定（プロフィール記載）。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec-title">ランキング：シーズン統合Top10（いいね数ベース）</h2>
+    <p class="lead-note">X・Instagram・YouTube・Facebookから収集した投稿を、プラットフォーム横断で比較できる「いいね／リアクション数」を共通指標として統合ランキング化。表示回数（インプレッション）はX・YouTubeのみ公開されているため参考値として併記。値の意味・収集方法の限界は本ページ末尾の注記を参照。</p>
+    <div class="panel">
+      <table class="data-table">
+        <tr><th>順位</th><th>投稿内容</th><th>日付</th><th class="num">いいね/反応</th><th class="num">参考：表示回数</th></tr>
+        <tr>
+          <td class="rank-cell"><span class="rank-badge r1">1</span></td>
+          <td><span class="plat-dot" style="background:var(--series-6)"></span>Instagram：「THANK YOU SHUSUKE IKUHARA」#46 生原秀将選手 引退報告</td>
+          <td>6月20日</td><td class="num">3,423</td><td class="num">—</td>
+        </tr>
+        <tr>
+          <td class="rank-cell"><span class="rank-badge r2">2</span></td>
+          <td><span class="plat-dot" style="background:var(--series-6)"></span>Instagram：「B2 Eastern Conference Champions」（b.league公式との共同投稿）</td>
+          <td>4月19日</td><td class="num">2,265</td><td class="num">—</td>
+        </tr>
+        <tr>
+          <td class="rank-cell"><span class="rank-badge r3">3</span></td>
+          <td><span class="plat-dot" style="background:var(--series-6)"></span>Instagram：「SIGNED #24 MIKE DAUM」2026-27シーズン契約継続</td>
+          <td>6月25日</td><td class="num">1,996</td><td class="num">—</td>
+        </tr>
+        <tr>
+          <td class="rank-cell"><span class="rank-badge">4</span></td>
+          <td><span class="plat-dot" style="background:var(--series-1)"></span>X：「SIGNED #11 小栗瑛哉」2026-27シーズン契約継続</td>
+          <td>6月2日</td><td class="num">1,681</td><td class="num">13.0万</td>
+        </tr>
+        <tr>
+          <td class="rank-cell"><span class="rank-badge">5</span></td>
+          <td><span class="plat-dot" style="background:var(--series-1)"></span>X：「信州PRIDE」ブランディング投稿（固定ポスト）</td>
+          <td>6月2日</td><td class="num">1,594</td><td class="num">71.0万</td>
+        </tr>
+        <tr>
+          <td class="rank-cell"><span class="rank-badge">6</span></td>
+          <td><span class="plat-dot" style="background:var(--series-6)"></span>Instagram：「信州PRIDE」同ブランディング投稿（リール）</td>
+          <td>6月2日</td><td class="num">1,518</td><td class="num">—</td>
+        </tr>
+        <tr>
+          <td class="rank-cell"><span class="rank-badge">7</span></td>
+          <td><span class="plat-dot" style="background:var(--series-1)"></span>X：チームMC「三井順」氏 契約継続のお知らせ</td>
+          <td>6月22日</td><td class="num">1,148</td><td class="num">11.0万</td>
+        </tr>
+        <tr>
+          <td class="rank-cell"><span class="rank-badge">8</span></td>
+          <td><span class="plat-dot" style="background:var(--series-6)"></span>Instagram：#12 栗原ルイス選手 復帰後「WIN!!」動画</td>
+          <td>4月25日</td><td class="num">871</td><td class="num">—</td>
+        </tr>
+        <tr>
+          <td class="rank-cell"><span class="rank-badge">9</span></td>
+          <td><span class="plat-dot" style="background:var(--series-6)"></span>Instagram：「THANK YOU」#15 Aki Chambers選手 シーズン終了メッセージ</td>
+          <td>5月28日</td><td class="num">839</td><td class="num">—</td>
+        </tr>
+        <tr>
+          <td class="rank-cell"><span class="rank-badge">10</span></td>
+          <td><span class="plat-dot" style="background:var(--series-6)"></span>Instagram：「THANK YOU」#50 Wayne Marshall選手 シーズン終了メッセージ</td>
+          <td>5月28日</td><td class="num">834</td><td class="num">—</td>
+        </tr>
+      </table>
+      <p class="note" style="margin-top:14px;">Top10のうち7件がInstagram、3件がX。YouTube・Facebookはいいね／反応の絶対数が両プラットフォームの規模上小さく（Facebookはフォロワー8,230人、YouTubeは「いいね」機能を今回未集計）、本ランキングには入らなかった。プラットフォーム別の詳細は下記の月次・週次ランキングを参照。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec-title">シーズン比較：2025-26シーズン vs 2026-27シーズン（現在まで）</h2>
+    <p class="lead-note">ユーザー指定の区切り「2025年7月1日〜2026年6月30日」を旧シーズン、「2026年7月1日〜」を新シーズンとして、それぞれのTop3をX投稿（表示回数を取得できる唯一のプラットフォーム）で比較。</p>
+    <div class="season-grid">
+      <div class="panel">
+        <div class="mini-table-title"><span class="season-tag">2025-26シーズン（〜6/30）</span>Top3（Xいいね数）</div>
+        <table class="data-table">
+          <tr><th>順位</th><th>投稿内容</th><th>日付</th><th class="num">いいね</th></tr>
+          <tr><td class="rank-cell"><span class="rank-badge r1">1</span></td><td>「SIGNED」小栗瑛哉選手 契約継続</td><td>6/2</td><td class="num">1,681</td></tr>
+          <tr><td class="rank-cell"><span class="rank-badge r2">2</span></td><td>「信州PRIDE」ブランディング投稿</td><td>6/2</td><td class="num">1,594</td></tr>
+          <tr><td class="rank-cell"><span class="rank-badge r3">3</span></td><td>チームMC 三井順氏 契約継続</td><td>6/22</td><td class="num">1,148</td></tr>
+        </table>
+      </div>
+      <div class="panel">
+        <div class="mini-table-title"><span class="season-tag current">2026-27シーズン（7/1〜現在）</span>Top3（Xいいね数）</div>
+        <table class="data-table">
+          <tr><th>順位</th><th>投稿内容</th><th>日付</th><th class="num">いいね</th></tr>
+          <tr><td class="rank-cell"><span class="rank-badge r1">1</span></td><td>#22 トビン選手 メッセージ動画</td><td>7/18</td><td class="num">745</td></tr>
+          <tr><td class="rank-cell"><span class="rank-badge r2">2</span></td><td>#14 星野京介選手「おかえりなさい」メッセージ</td><td>7/6</td><td class="num">555</td></tr>
+          <tr><td class="rank-cell"><span class="rank-badge r3">3</span></td><td>開幕戦ポスター掲出協力の募集</td><td>7/8</td><td class="num">388</td></tr>
+        </table>
+      </div>
+    </div>
+    <p class="note" style="margin-top:14px;">新シーズンはまだ開幕前（オフシーズン準備期間）のため、投稿数・母数が旧シーズン終盤（契約更新・お知らせラッシュ）より少なく、単純な数値比較では新シーズンが不利になる点に留意。開幕（9月予定）以降にあらためて比較することを推奨。</p>
+  </section>
+
+  <section>
+    <h2 class="sec-title">月次 Top3（プラットフォーム別、4月・5月・6月）</h2>
+    <p class="lead-note">「直近3ヶ月の月次ベスト3」の対象範囲。各プラットフォームで公開されている指標が異なるため、X・YouTubeは表示回数（views）、Instagramはいいね数で順位付け。Facebookはログイン後閲覧の壁により月次の網羅的収集ができず、参考記録のみ掲載。</p>
+
+    <h3 class="sub-title"><span class="plat-dot" style="background:var(--series-1)"></span>X（@shinshubw）— 表示回数ベース</h3>
+    <div class="panel">
+      <table class="data-table">
+        <tr><th>月</th><th>順位</th><th>投稿内容</th><th>日付</th><th class="num">表示回数</th><th class="num">いいね</th></tr>
+        <tr><td rowspan="3">4月</td><td class="rank-cell"><span class="rank-badge r1">1</span></td><td>プレーオフ進出決定のお知らせ</td><td>4/22</td><td class="num">7,425</td><td class="num">278</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r2">2</span></td><td>vs横浜エクセレンス GAME2 勝利報告（85-81）</td><td>4/5</td><td class="num">6,843</td><td class="num">213</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r3">3</span></td><td>ON FIRE賞 #5 土家大輝選手</td><td>4/5</td><td class="num">6,419</td><td class="num">308</td></tr>
+        <tr><td rowspan="3">5月</td><td class="rank-cell"><span class="rank-badge r1">1</span></td><td>#50 ウェイン・マーシャル選手コメント</td><td>5/17</td><td class="num">28,000</td><td class="num">558</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r2">2</span></td><td>残り0.3秒 逆転勝利（vs福井）</td><td>5/4</td><td class="num">22,000</td><td class="num">661</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r3">3</span></td><td>セミファイナルGAME3実施／#7小栗選手メッセージ</td><td>5/10</td><td class="num">20,000</td><td class="num">512</td></tr>
+        <tr><td rowspan="3">6月</td><td class="rank-cell"><span class="rank-badge r1">1</span></td><td>「信州PRIDE」ブランディング投稿（固定ポスト）</td><td>6/2</td><td class="num">71.0万</td><td class="num">1,594</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r2">2</span></td><td>「SIGNED」#11 小栗瑛哉選手 契約継続</td><td>6/2</td><td class="num">13.0万</td><td class="num">1,681</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r3">3</span></td><td>チームMC 三井順氏 契約継続のお知らせ</td><td>6/22</td><td class="num">11.0万</td><td class="num">1,148</td></tr>
+      </table>
+    </div>
+
+    <h3 class="sub-title"><span class="plat-dot" style="background:var(--series-6)"></span>Instagram（@shinshubw）— いいね数ベース</h3>
+    <div class="panel">
+      <table class="data-table">
+        <tr><th>月</th><th>順位</th><th>投稿内容</th><th>日付</th><th class="num">いいね</th></tr>
+        <tr><td rowspan="3">4月</td><td class="rank-cell"><span class="rank-badge r1">1</span></td><td>「B2 Eastern Conference Champions」（b.league公式共同投稿）</td><td>4/19</td><td class="num">2,265</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r2">2</span></td><td>#12 栗原ルイス選手「WIN!!」復帰動画</td><td>4/25</td><td class="num">871</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r3">3</span></td><td>#46 生原秀将選手 プレーオフ進出メッセージ</td><td>4/22</td><td class="num">693</td></tr>
+        <tr><td rowspan="3">5月</td><td class="rank-cell"><span class="rank-badge r1">1</span></td><td>「THANK YOU」#15 Aki Chambers選手</td><td>5/28</td><td class="num">839</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r2">2</span></td><td>「THANK YOU」#50 Wayne Marshall選手</td><td>5/28</td><td class="num">834</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r3">3</span></td><td>「THANK YOU」#46 生原秀将選手</td><td>5/28</td><td class="num">614</td></tr>
+        <tr><td rowspan="3">6月</td><td class="rank-cell"><span class="rank-badge r1">1</span></td><td>「THANK YOU SHUSUKE IKUHARA」引退報告</td><td>6/20</td><td class="num">3,423</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r2">2</span></td><td>「SIGNED」#24 MIKE DAUM 契約継続</td><td>6/25</td><td class="num">1,996</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r3">3</span></td><td>「信州PRIDE」ブランディング投稿</td><td>6/2</td><td class="num">1,518</td></tr>
+      </table>
+    </div>
+
+    <h3 class="sub-title"><span class="plat-dot" style="background:var(--series-3)"></span>YouTube（@shinshubw）— 再生回数ベース</h3>
+    <div class="panel">
+      <table class="data-table">
+        <tr><th>月</th><th>順位</th><th>投稿内容</th><th>日付</th><th class="num">再生回数</th></tr>
+        <tr><td rowspan="3">4月</td><td class="rank-cell"><span class="rank-badge r1">1</span></td><td>4/19 vs愛媛オレンジバイキングス GAME2 ハイライト</td><td>4/19</td><td class="num">5,271</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r2">2</span></td><td>4/12 vs岩手ビッグブルズ GAME2 ハイライト</td><td>4/12</td><td class="num">4,758</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r3">3</span></td><td>4/5 vs横浜エクセレンス GAME2 ハイライト</td><td>4/5</td><td class="num">3,988</td></tr>
+        <tr><td rowspan="3">5月</td><td class="rank-cell"><span class="rank-badge r1">1</span></td><td>5/4 vs福井ブローウィンズ GAME3 ハイライト</td><td>5/4</td><td class="num">13,000</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r2">2</span></td><td>【SIX MORE WINS】プレーオフへ向けて</td><td>5月上旬</td><td class="num">5,320</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r3">3</span></td><td>5/10 vs福島ファイヤーボンズ GAME2 ハイライト</td><td>5/10</td><td class="num">5,131</td></tr>
+        <tr><td rowspan="3">6月</td><td class="rank-cell"><span class="rank-badge r1">1</span></td><td>「READY OR NOT．」ブランド動画</td><td>6月下旬</td><td class="num">4,720</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r2">2</span></td><td>2025-26シーズンハイライト #15 アキ・チェンバース選手</td><td>6月下旬</td><td class="num">2,495</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r3">3</span></td><td>2025-26シーズンハイライト #34 渡邉飛勇選手</td><td>6月下旬</td><td class="num">2,421</td></tr>
+      </table>
+      <p class="note" style="margin-top:14px;">6月の投稿は「2025-26SEASON ハイライト」選手別シリーズとして同時期にまとめて公開されたため、YouTube上の相対表示（「1ヶ月前」）から6月下旬と推定。正確な公開日はチャンネル管理画面でのみ確認可能。</p>
+    </div>
+
+    <h3 class="sub-title"><span class="plat-dot" style="background:var(--series-2)"></span>Facebook（brave.warriors）— 参考記録（サンプル限定）</h3>
+    <div class="panel">
+      <table class="data-table">
+        <tr><th>日付</th><th>投稿内容</th><th class="num">いいね/反応</th><th class="num">シェア</th></tr>
+        <tr><td>6/25</td><td>「SIGNED」#24 マイク・ダウム選手 契約継続</td><td class="num">165</td><td class="num">1</td></tr>
+        <tr><td>6/30</td><td>2026-27シーズン オーセンティックユニフォーム 受注販売告知</td><td class="num">52</td><td class="num">4</td></tr>
+        <tr><td>7/8</td><td>【REPORT】長野俊英高校 探究授業レポート</td><td class="num">46</td><td class="num">3</td></tr>
+      </table>
+      <p class="note" style="margin-top:14px;">Facebookは非ログイン状態だとフィードが1〜2件しか表示されず、投稿一覧の網羅的な遡及ができなかった（写真アルバム経由で個別に確認できた3件のみ掲載）。4月・5月分は未収集。月次Top3としての比較には至らず、参考記録として扱う。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec-title">週間 Top3（直近4週間、X @shinshubw）</h2>
+    <p class="lead-note">「直近1ヶ月の週次ベスト3」の対象範囲。表示回数を安定して取得できるXのみ、週単位（月曜〜日曜起点）で集計。他プラットフォームは投稿頻度・取得制約により週次の精緻な比較データが揃わなかったため、Xのみを掲載。</p>
+    <div class="panel">
+      <table class="data-table">
+        <tr><th>週</th><th>順位</th><th>投稿内容</th><th class="num">表示回数</th><th class="num">いいね</th></tr>
+        <tr><td rowspan="3">6/21〜6/27</td><td class="rank-cell"><span class="rank-badge r1">1</span></td><td>チームMC 三井順氏 契約継続のお知らせ</td><td class="num">11.0万</td><td class="num">1,148</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r2">2</span></td><td>「15周年ブック」発売決定</td><td class="num">38,000</td><td class="num">220</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r3">3</span></td><td>マンスリーGO！GO！ウォリアーズ（#3ドンリー選手登場）</td><td class="num">14,000</td><td class="num">266</td></tr>
+        <tr><td rowspan="3">6/28〜7/4</td><td class="rank-cell"><span class="rank-badge r1">1</span></td><td>【JASPERS】2026-27シーズン メンバー決定</td><td class="num">28,000</td><td class="num">376</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r2">2</span></td><td>リーグ戦前半戦 試合開始時間決定</td><td class="num">19,000</td><td class="num">287</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r3">3</span></td><td>「CLUB ONE MORE」ファンクラブ 早期入会受付開始</td><td class="num">16,000</td><td class="num">98</td></tr>
+        <tr><td rowspan="3">7/5〜7/11</td><td class="rank-cell"><span class="rank-badge r1">1</span></td><td>#14 星野京介選手「おかえりなさい」メッセージ</td><td class="num">43,000</td><td class="num">555</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r2">2</span></td><td>開幕戦ポスター掲出協力の募集</td><td class="num">42,000</td><td class="num">388</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r3">3</span></td><td>「CLUB ONE MORE」入会受付中（リマインド）</td><td class="num">16,000</td><td class="num">68</td></tr>
+        <tr><td rowspan="3">7/12〜7/18</td><td class="rank-cell"><span class="rank-badge r1">1</span></td><td>#22 トビン選手 メッセージ動画</td><td class="num">65,373</td><td class="num">745</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r2">2</span></td><td>連休イベント告知（松本花時計公園）</td><td class="num">30,435</td><td class="num">95</td></tr>
+        <tr><td class="rank-cell"><span class="rank-badge r3">3</span></td><td>連休イベント告知（中古車フェア）</td><td class="num">29,778</td><td class="num">102</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec-title">投稿内容の採点・評価</h2>
+    <p class="lead-note">シーズン統合Top10（上記）を対象に、独自の4軸スコアリング（100点満点）で採点。①エンゲージメント指数＝フォロワー規模・投稿傾向に対する反応の強さ（50点）②感情・ストーリー性＝個人の物語性やチームへの思い入れの強さ（25点）③ビジュアル/制作クオリティ＝動画・デザインの完成度（15点）④情報・CTA明確さ＝行動喚起や情報価値の明確さ（10点）。数値は本ページで収集した実データと投稿内容の定性評価に基づくクロード（Claude）による分析であり、公式の評価指標ではない点にご留意ください。</p>
+    <div class="panel">
+      <div class="score-row" style="margin-bottom:6px;">
+        <div></div><div style="font-size:11px;color:var(--text-muted);">投稿</div><div style="font-size:11px;color:var(--text-muted);">スコア内訳</div><div style="font-size:11px;color:var(--text-muted);text-align:right;">総合</div>
+      </div>
+
+      <div class="score-row">
+        <span class="rank-badge r1">1</span>
+        <div class="desc"><b>生原秀将選手 引退報告</b>（Instagram・6/20）<div class="meta2">エンゲージ48／感情25／ビジュアル14／CTA8</div></div>
+        <div class="score-track"><div class="score-fill" style="width:95%"></div></div>
+        <div class="score-num">95</div>
+      </div>
+      <p class="eval-comment">4年間在籍した選手本人の肉声メッセージによる引退発表。フォロワー3.1万規模のアカウントで「いいね」率11%超は今回収集した全投稿中で最高値。感情的な物語性・タイミング（オフシーズン早々の発表）・本人出演の3点が揃い、シーズン最高スコア。</p>
+
+      <div class="score-row">
+        <span class="rank-badge r2">2</span>
+        <div class="desc"><b>「信州PRIDE」ブランディング投稿</b>（X・6/2、固定ポスト）<div class="meta2">エンゲージ50／感情20／ビジュアル13／CTA5</div></div>
+        <div class="score-track"><div class="score-fill" style="width:88%"></div></div>
+        <div class="score-num">88</div>
+      </div>
+      <p class="eval-comment">表示回数71万は収集した全投稿中で圧倒的な最多値（2位以下の約5倍）。チームスローガンを固定ポストに設定し続けたことでリーチが継続的に積み上がったと推測される。一方でCTA（行動喚起）は弱く、スローガン提示にとどまる。</p>
+
+      <div class="score-row">
+        <span class="rank-badge r3">3</span>
+        <div class="desc"><b>「B2 Eastern Conference Champions」共同投稿</b>（Instagram・4/19）<div class="meta2">エンゲージ44／感情20／ビジュアル14／CTA7</div></div>
+        <div class="score-track"><div class="score-fill" style="width:85%"></div></div>
+        <div class="score-num">85</div>
+      </div>
+      <p class="eval-comment">リーグ公式アカウント（b.league_international）との共同投稿により、フォロワー基盤の異なる層にリーチできた好例。地区優勝という明確な慶事コンテンツで、選手4名の勝利の雄叫びを捉えたビジュアルも高評価。</p>
+
+      <div class="score-row">
+        <span class="rank-badge">4</span>
+        <div class="desc"><b>「SIGNED」小栗瑛哉選手 契約継続</b>（X・6/2）<div class="meta2">エンゲージ48／感情15／ビジュアル14／CTA8</div></div>
+        <div class="score-track"><div class="score-fill" style="width:85%"></div></div>
+        <div class="score-num">85</div>
+      </div>
+      <p class="eval-comment">表示回数13万・いいね1,681と、契約継続告知としては突出した反応。「SIGNED」統一デザインのシリーズ化と、ハッシュタグでの選手名明記がCTAとして機能している。同フォーマットは6月中に複数回投稿され安定した反応を獲得。</p>
+
+      <div class="score-row">
+        <span class="rank-badge">5</span>
+        <div class="desc"><b>「THANK YOU」Aki Chambers選手 シーズン終了メッセージ</b>（Instagram・5/28）<div class="meta2">エンゲージ34／感情22／ビジュアル12／CTA6</div></div>
+        <div class="score-track"><div class="score-fill" style="width:74%"></div></div>
+        <div class="score-num">74</div>
+      </div>
+      <p class="eval-comment">シーズン終了時に一斉配信された「THANK YOU」シリーズ（全選手対象）の中でも最高値。ファンから人気の高い選手ほど反応が伸びる傾向が確認でき、シリーズ内でのばらつき（614〜839いいね）は選手の人気度をある程度反映していると考えられる。</p>
+
+      <div class="score-row">
+        <span class="rank-badge">6</span>
+        <div class="desc"><b>チームMC 三井順氏 契約継続のお知らせ</b>（X・6/22）<div class="meta2">エンゲージ42／感情10／ビジュアル10／CTA6</div></div>
+        <div class="score-track"><div class="score-fill" style="width:68%"></div></div>
+        <div class="score-num">68</div>
+      </div>
+      <p class="eval-comment">表示回数11万と数値上は上位に入るが、テキスト中心の事務連絡的な内容で感情訴求・ビジュアル面のスコアは伸び悩む。長年のチームMCという「顔」への信頼・愛着がいいね数を押し上げたと推測されるが、コンテンツとしての工夫の余地は大きい。</p>
+    </div>
+    <div class="callout" style="margin-top:18px;">
+      <ul>
+        <li><b>お別れ・引退メッセージが最強コンテンツ：</b>Top10のうち上位を占めるのは選手本人が語る「引退」「シーズン終了」メッセージ。事務連絡系の告知（契約・人事）より軒並み高スコア。</li>
+        <li><b>「SIGNED」フォーマットの有効性：</b>契約継続・新加入を統一デザインで発表する「SIGNED」シリーズは、X・Instagram双方で安定して高いいいね数を獲得しており、再現性の高い勝ちパターンとして定着している。</li>
+        <li><b>ブランディング投稿の長期効果：</b>「信州PRIDE」はX・Instagram両方で固定投稿として運用され、通常投稿の5〜20倍のリーチ・エンゲージメントを継続的に獲得。スローガン訴求単体でも一定の効果があるが、CTA（次のアクションへの誘導）を加えると更に伸びる余地がある。</li>
+        <li><b>事務連絡系はビジュアル強化の余地あり：</b>契約・人事・スケジュール告知はテキスト主体になりがちで、感情面・ビジュアル面のスコアが伸び悩む。選手コメント動画や写真を添えるだけで反応が伸びる可能性が高い。</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec-title">アカウント一覧（確認できた公式SNS）</h2>
+    <div class="panel">
+      <table class="data-table">
+        <tr><th>プラットフォーム</th><th>アカウント</th><th class="num">フォロワー/登録者</th><th>備考</th></tr>
+        <tr><td>X（本体）</td><td>@shinshubw</td><td class="num">45,000</td><td>公式メインアカウント／投稿29,000件</td></tr>
+        <tr><td>Instagram（本体）</td><td>@shinshubw</td><td class="num">31,000</td><td>投稿4,381件／フォロー中169</td></tr>
+        <tr><td>YouTube</td><td>@shinshubw</td><td class="num">10,200</td><td>動画859本</td></tr>
+        <tr><td>Facebook</td><td>brave.warriors</td><td class="num">8,230</td><td>フォロー中34</td></tr>
+        <tr><td>X（ブレアー）</td><td>@blare_sbw</td><td class="num">3,026</td><td>マスコット公式アカウント／2025年8月開設／投稿523件</td></tr>
+        <tr><td>X（グッズ情報）</td><td>@shinshubw_goods</td><td class="num">2,604</td><td>グッズ・オンラインショップ告知用／投稿468件</td></tr>
+        <tr><td>Instagram（アカデミー）</td><td>@shinshubw_academy</td><td class="num">—</td><td>今回未取得</td></tr>
+        <tr><td>LINE公式</td><td>@nwd1559w</td><td class="num">—</td><td>公式サイトに掲載（未集計）</td></tr>
+        <tr><td>TikTok</td><td>—</td><td class="num">—</td><td>公式サイトに記載なし。公式アカウント未確認</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec-title">集計方法・データの限界について</h2>
+    <div class="callout">
+      <ul>
+        <li><b>取得方法：</b>各SNSの公開ページをブラウザで閲覧して数値を手動で収集しました（API連携は未使用）。Instagramのみ、ログイン後に取得しています。Xは「from:shinshubw since:YYYY-MM-DD until:YYYY-MM-DD」形式の検索と「話題のポスト」（エンゲージメント順）タブを用いて、週・月単位で上位投稿を抽出しています。</li>
+        <li><b>期間について：</b>フォロワー数・登録者数は<b>2026年7月18日時点のスナップショット</b>です。ランキング（週間・月間・シーズンTop3、統合Top10）は2025年7月1日〜2026年7月18日を対象としていますが、全投稿の網羅的な集計ではなく、各期間で上位に入ったと考えられる投稿をサンプル抽出したものです（特にX以外のプラットフォームでは網羅性に限界があります）。</li>
+        <li><b>プラットフォーム別の指標の違い：</b>Instagram・Facebookは公開ページから「表示回数（インプレッション）」「リーチ数」を第三者が閲覧することができないため、代替指標として「いいね数」（＋コメント数）を採用しています。X・YouTubeは表示回数／再生回数が公開されているため、これを主指標としました。正式なインプレッション・リーチ数が必要な場合は、各アカウント管理者によるインサイト機能へのログインが必要です。</li>
+        <li><b>週次データの網羅性：</b>週単位（月曜〜日曜起点）での上位3件比較は、表示回数を安定して取得できるXのみで実施しています。Instagram・YouTube・Facebookは投稿頻度や取得手段の制約により、月次単位でのみ集計しています。</li>
+        <li><b>YouTubeの月次データ：</b>直近3ヶ月（4〜6月）の投稿一覧から抽出していますが、6月分は複数動画が同時期にまとめて公開されており、YouTube上の相対表示（「〇ヶ月前」）から月を推定しています。正確な公開日はチャンネル管理画面でのみ確認可能です。</li>
+        <li><b>Facebookの制約：</b>非ログイン状態のFacebookページはフィードが1〜2件のみ表示され、投稿一覧を遡って網羅的に閲覧できませんでした。写真アルバム経由で個別に開けた投稿のみを参考記録として掲載しており、4月・5月分のデータは未収集です。</li>
+        <li><b>投稿内容の採点について：</b>「投稿内容の採点・評価」セクションのスコアは、収集した実データ（いいね数・表示回数等）と投稿内容の定性的な分析を組み合わせたClaudeによる独自評価です。公式の評価指標ではなく、あくまで傾向分析の参考値としてご活用ください。</li>
+        <li><b>TikTok：</b>公式サイト（b-warriors.net）のSNSリンク一覧にTikTokの掲載がなく、公式アカウントの存在を確認できませんでした。</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    データ出典：<a href="https://x.com/shinshubw" target="_blank">X @shinshubw</a>／
+    <a href="https://www.instagram.com/shinshubw/" target="_blank">Instagram @shinshubw</a>／
+    <a href="https://x.com/blare_sbw" target="_blank">X @blare_sbw</a>／
+    <a href="https://x.com/shinshubw_goods" target="_blank">X @shinshubw_goods</a>／
+    <a href="https://www.youtube.com/@shinshubw" target="_blank">YouTube @shinshubw</a>／
+    <a href="https://www.facebook.com/brave.warriors/" target="_blank">Facebook brave.warriors</a>／
+    <a href="https://www.b-warriors.net/" target="_blank">公式サイト b-warriors.net</a>
+    <br>作成: Claude（Cowork）／ 2026年7月18日時点の公開情報に基づく手動集計
+  </footer>
+
+</div>
+
+<script>
+  const buttons = document.querySelectorAll('[data-theme-btn]');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const theme = btn.getAttribute('data-theme-btn');
+      document.documentElement.setAttribute('data-theme', theme);
+      buttons.forEach(b => b.classList.toggle('active', b === btn));
+    });
+  });
+</script>
+</body>
+</html>
